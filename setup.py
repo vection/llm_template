@@ -8,7 +8,7 @@ setup(
     description='Package designed to simplify the concept of getting structured output from LLMs',
     long_description=open('README.md').read(),
     long_description_content_type='text/markdown',
-    url='https://github.com/yourusername/my_package',
+    url='https://github.com/vection/llm_template',
     packages=find_packages(),
     classifiers=[
         'Programming Language :: Python :: 3',
