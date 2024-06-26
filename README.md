@@ -1,5 +1,86 @@
 # Generation By Template
 
+**Usage Example**
+```
+text = """By given email that has been sent to business, we need to extract the information about the sender and also what he asks for.
+Customer can ask for bids on the business items.
+The final output need to be in this JSON format:
+{'sender' : {'email': '', 'full_name': '', 'phone': ''}, 'items': [{'item_description': '', 'quantity': '', 'measurments' : '', 'material' : ''}, ...], 'notes': ''}
+
+Sender Email: sales@customfurnitureco.com
+Target Email: client@example.com
+Subject: Bid Proposal for Custom Office Furniture
+
+**Email Content:
+
+Dear John Doe,
+
+Thank you for your patience. We have prepared a detailed bid proposal for the custom office furniture requested by XYZ Corp.
+
+Bid Proposal:
+
+Executive Office Desks (10 units)
+
+Material: Solid wood with a walnut veneer finish
+Dimensions: 60" W x 30" D x 30" H
+Features: Built-in cable management, lockable drawers
+Price per unit: $1,200
+Total price: $12,000
+Ergonomic Office Chairs (20 units)
+
+Material: Mesh back with leather seat
+Features: Adjustable height, lumbar support, tilt mechanism
+Price per unit: $300
+Total price: $6,000
+Conference Tables (5 units)
+
+Material: Tempered glass with metal frame
+Dimensions: 96" L x 48" W x 30" H
+Features: Integrated power outlets, cable management
+Price per unit: $2,500
+Total price: $12,500
+Grand Total: $30,500
+
+Production Time: 6-8 weeks from the date of order confirmation.
+
+Payment Terms: 50% deposit upon order confirmation, balance upon delivery.
+
+We are confident that our high-quality materials and modern design aesthetic will meet your needs. Please review the proposal and let us know if you have any questions or require any adjustments.
+
+Thank you for considering Custom Furniture Co. We look forward to the possibility of working with XYZ Corp.
+
+Best regards,
+Jane Smith
+Sales Manager, Custom Furniture Co.
+sales@customfurnitureco.com"""
+
+
+generator = JsonGenerator(model=mymodel, tokenizer=tokenizer)
+
+schema = {'sender' : {'email': 'FILL', 'full_name': 'FILL', 'phone': 'FILL', 'location': 'FILL'}, 'items': [{'FILL'}], 'notes': 'FILL'}
+
+result = generator.generate(text, schema,temperature=0.1)
+
+
+{'sender': {'email': 'sales@customfurnitureco.com',
+  'full_name': 'Jane Smith',
+  'phone': '555-123-4567',
+  'location': 'New York'},
+ 'items': [{'item_description': 'Executive Office Desks',
+   'quantity': '10 units',
+   'measurments': '60" W x 30" D x 30" H',
+   'material': 'Solid wood with a walnut veneer finish'},
+  {'item_description': 'Ergonomic Office Chairs',
+   'quantity': '20 units',
+   'measurments': '',
+   'material': 'Mesh back with leather seat'},
+  {'item_description': 'Conference Tables',
+   'quantity': '5 units',
+   'measurments': '96" L x 48" W x 30" H',
+   'material': 'Tempered glass with metal frame'}],
+ 'notes': 'Please review the proposal and let us know if you have any questions or require any adjustments.'}`````
+```
+
 **Motivation**
 
 Many Language Models (LLMs) struggle to ensure output in valid JSON format, prompting various proposed solutions. While many of these solutions involve prompt engineering techniques, they often require explicit specification within the prompt of the expected JSON format, with no guarantee of successful generation.

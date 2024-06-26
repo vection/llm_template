@@ -1,11 +1,14 @@
 from setuptools import setup, find_packages
 
 setup(
-    name='llm_parser',
+    name='llm_template',
     version='0.1.0',
     author='Aviv Harazi',
     author_email='avivzx@gmail.com',
     description='Package designed to simplify the concept of getting structured output from LLMs',
+    install_requires=[
+            'transformers','torch'
+    ],
     long_description=open('README.md').read(),
     long_description_content_type='text/markdown',
     url='https://github.com/vection/llm_template',
