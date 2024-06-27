@@ -1,5 +1,5 @@
 ## Generation By Template
-Control your in-house LLM outputs by generating structured JSON or YAML outputs.
+Control your in-house LLM outputs by generating structured JSON outputs.
 
 llm_template allows you to generate bulletproof JSON or YAML outputs from any instruction model. It can also generate complex schemas, working faster and more accurately in most scenarios compared to regular generate functions.
 
