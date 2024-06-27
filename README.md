@@ -1,11 +1,35 @@
-# Generation By Template
+## Generation By Template
+Control your in-house LLM outputs by generating structured JSON or YAML outputs.
 
-**Usage Example**
+llm_template allows you to generate bulletproof JSON or YAML outputs from any instruction model. It can also generate complex schemas, working faster and more accurately in most scenarios compared to regular generate functions.
+
+### Installation
+To install llm_template, use pip:
+
 ```
-text = """By given email that has been sent to business, we need to extract the information about the sender and also what he asks for.
+pip install llm_template
+```
+
+Generation example of simple JSON:
+
+Desired json output:
+```
+{'sender' : {'email': '', 'full_name': '', 'phone': ''}, 
+'item': [{'item_description': '', 'quantity': '', 'measurments' : '', 'material' : ''}], 
+'notes': ''}
+```
+
+Following usage example:  
+```
+mymodel = AutoModelForCausalLM.from_pretrained('meta-llama/Meta-Llama-3-8B-Instruct',torch_dtype=torch.bfloat16,
+    device_map="auto")
+tokenizer = AutoTokenizer.from_pretrained('meta-llama/Meta-Llama-3-8B-Instruct')
+tokenizer.pad_token_id = tokenizer.eos_token_id
+
+prompt = """By given email that has been sent to business, we need to extract the information about the sender and also what he asks for.
 Customer can ask for bids on the business items.
 The final output need to be in this JSON format:
-{'sender' : {'email': '', 'full_name': '', 'phone': ''}, 'items': [{'item_description': '', 'quantity': '', 'measurments' : '', 'material' : ''}, ...], 'notes': ''}
+{'sender' : {'email': '', 'full_name': '', 'phone': ''}, 'item': [{'item_description': '', 'quantity': '', 'measurments' : '', 'material' : ''}], 'notes': ''}
 
 Sender Email: sales@customfurnitureco.com
 Target Email: client@example.com
@@ -54,7 +78,6 @@ Jane Smith
 Sales Manager, Custom Furniture Co.
 sales@customfurnitureco.com"""
 
-
 generator = JsonGenerator(model=mymodel, tokenizer=tokenizer)
 
 schema = {'sender' : {'email': 'FILL', 'full_name': 'FILL', 'phone': 'FILL', 'location': 'FILL'}, 'items': [{'FILL'}], 'notes': 'FILL'}
@@ -78,11 +101,43 @@ result = generator.generate(text, schema,temperature=0.1)
    'quantity': '5 units',
    'measurments': '96" L x 48" W x 30" H',
    'material': 'Tempered glass with metal frame'}],
- 'notes': 'Please review the proposal and let us know if you have any questions or require any adjustments.'}`````
+ 'notes': 'Please review the proposal and let us know if you have any questions or require any adjustments.'}
 ```
 
-**Motivation**
+## Creating the Schema
 
+When creating a schema for your JSON or YAML generation, follow these steps:
+
+1. **Identify Keys and Structure:** Determine the keys (fields) and their structure that you want in your generated output.
+2. **Define Placeholder Values:** Use placeholder values like `"FILL"` for keys whose values will be filled during generation.
+3. **Example Schema:**
+   ```json
+   {
+     "sender": {
+       "email": "FILL",
+       "full_name": "FILL",
+       "phone": "FILL",
+       "location": "FILL"
+     },
+     "items": [
+       {"FILL"}
+     ],
+     "notes": "FILL"
+   }
+   
+## Best Practices
+* When generating a list of dictionaries, specify the desired structure in the prompt and use [{'FILL'}] in the schema.
+* For simple JSON responses, you don't need to specify the JSON output in the prompt unless you want to generate a list of dictionaries.
+* Crafting a well-defined prompt significantly impacts the quality of the generated output. Clearly specifying the output format within the prompt can lead to more accurate results.
+* For more advanced generation, you can incorporate logic rules to control specific values. This can involve filtering or sampling from a predefined list of tokens or analyzing logits score distances to identify other candidate tokens for possible answers..
+
+
+## Future Features
+* Enable to add custom logic to generation step
+* Add speculative decoding support
+
+
+## Motivation
 Many Language Models (LLMs) struggle to ensure output in valid JSON format, prompting various proposed solutions. While many of these solutions involve prompt engineering techniques, they often require explicit specification within the prompt of the expected JSON format, with no guarantee of successful generation.
 
 These techniques frequently yield inconsistent outputs, occasionally resulting in incorrect JSON formatting, difficulty in filtering, inclusion of undesired keys, and mismatched schema. Moreover, they endure lengthy generation periods due to the necessity of strictly adhering to a predefined format, often involving repetitive characters.
@@ -93,23 +148,10 @@ Alternatively, more convenient methods like jsonFormer offer a solution by speci
 
 Another approach involves fine-tuning to achieve JSON output, which, while functional, introduces its own set of challenges and demands additional effort.
 
-For example in LLama3 most of the outputs given not valid JSON format:
-
- 
-`Here is the extracted information in the requested JSON format:\n\n```\n{\n  "shipper": {\n    "business_party": "The Heller Group",\n    "address_details": {\n      "address_name": "745 Fifth Avenue, 4th Floor",\n      "country_name": "USA",\n      "city": "New York",\n      "postal_code": "10151"\n    },\n    "contacts": [\n      {\n        "given_name": "Anna",\n        "last_name": "Hafner",\n        "email": "anna@hellergroupllc.com",\n        "phone": "",\n        "phone2": "",\n        "title": ""\n      }\n    ]\n  }\n}\n````
-
-Another example of output:
-`The pickup address specified for picking up the goods is:\n\n* Name: David Kordansky Gallery\n* City: New York\n* State: NY\n* Postal Code: 10011\n* Country: United States\n\nHere is the output in JSON format:\n\n{\n"pickup_address": {\n"address_name": "David Kordansky Gallery",\n"city": "New York",\n"state_code": "NY",\n"state_name": "New York",\n"postal_code": "10011",\n"country_name": "United States",\n"country_code": "US"\n}`
-
-This represents the most convenient output, but it is clear that it is not in a valid JSON format, necessitating additional post-processing and filtering.
-
-Due to this, it is common for Language Models (LLMs) to introduce extra keys, modify their names, or even produce invalid JSON output.
-
 Addressing these challenges demands more sophisticated approaches to enhance resilience in production environments.
-
 Imagine if we could govern the generation process and instruct the LLM to exclusively produce the desired tokens.
 
-### The Method 
+## The Solution
 
 The proposed methodology involves the creation of predefined JSON-based templates and the management of the generation process through the segmentation of templates into discrete entities (keys). Each key is associated with the generation of its corresponding value utilizing Language Model-based methods, adhering to appropriate stopping criteria. 
 
@@ -127,7 +169,7 @@ Let us define desirable JSON output:
 "state_code": "CA",
 "city": "Los Angeles",
 "postal_code": "90028",
-"address_name": "6834 Hollywood Blvd, Los Angeles, CA"
+"address_name": "123456 Hollywood Blvd, Los Angeles, CA"
 }
 }`
 
@@ -153,8 +195,8 @@ Subsequently, we traverse through the list of sequences, appending them to the p
 
 The stopping criteria are bifurcated into two categories:
 
-Regular generation: where the output adheres to a standard JSON format.
-Array generation: where the output consists of arrays.
+### Regular generation: where the output adheres to a standard JSON format.
+### Array generation: where the output consists of arrays.
 
 This distinction is determined by detecting an array indicator character within the current sequence.
 
@@ -170,134 +212,14 @@ To maximize results the correlation between the template format and output forma
 
 ### Experiments
 
-Dataset: 438 samples of Extraction of entities from email such as Shipper, Consignee, Freight components and so on
+| Model                                         | Generation Time Avg (sec) | Accuracy | Method  | Total Generated | Total JSON parsing errors |
+|-----------------------------------------------|---------------------------|----------|---------|-----------------|---------------------------|
+| LLama-3-7B-instruct                           | 3.08                      | 51.18%   | Template| 4356            | 0                         |
+| LLama-3-7B-instruct                           | 4.99                      | 29.17%   | Generate| 3527            | 42                        |
+| Qwen-2-1.5B-instruct                          | 3.25                      | 42.42%   | Template| 3833            | 0                         |
+| Qwen-2-1.5B-instruct                          | 2.5                       | 24.85%   | Generate| 3375            | 39                        |
+| LLama-3-7B-instruct (FineTuned on private dataset)| 10.07                     | 60.3%    | Template| 15898           | 0                         |
+| LLama-3-7B-instruct (FineTuned on private dataset)| 17.06                     | 52.55%   | Generate| 13691           | 0                         |
+
+**Accuracy rate is calculated by fuzzy similarity score for each entity between each generated value compared to Ground Truth value if provided. Then for each entity calculated a score and then averaging on all entities.**
 
-4 Variations were tested:
-
-Fine-Tuned With Output: This indicates that the prompt was provided for a fine-tuned version specific to a sub-domain, including specifications for the output JSON format.
-
-Fine-Tuned Without Output: This indicates that the prompt was provided for a fine-tuned version specific to a sub-domain, but without specifications for the output JSON format.
-
-Pretrained With Output: This indicates that the prompt was provided for the basic pretrained version, including specifications for the output JSON format.
-
-Pretrained Without Output: This indicates that the prompt was provided for the basic pretrained version, but without specifications for the output JSON format.
-
-**LLama3-8B-Instruct Fine Tuned Template With Output:** 
-
-Total generated values: 
-
-Template Generation: 4271 
-
-Response Generation: 3823 
-
-Total True values:
-
-Template Generation: 1701
-
-Response Generation: 1460
-
-Total of Not JSON:
-
-Template Generation: 0
-
-Response Generation: 0
-
-Generation Time:
-
-Template Generation: 
-
-![finetuned_with_output_template_generate_time_plot.png](https://prod-files-secure.s3.us-west-2.amazonaws.com/c261e6b6-cd2a-412a-8df3-d68b0a77792e/a98eb8d0-9ce1-4687-b0cc-ad422c2f25b3/finetuned_with_output_template_generate_time_plot.png)
-
-Regular Generation:
-
-![finetuned_with_output_generate_time_plot.png](https://prod-files-secure.s3.us-west-2.amazonaws.com/c261e6b6-cd2a-412a-8df3-d68b0a77792e/c78d1968-835b-480a-a6f6-3868dc97d6cf/finetuned_with_output_generate_time_plot.png)
-
-**LLama3-8B-Instruct Fine Tuned Template Without Output:** 
-
-Total generated values: 
-
-Template Generation: 4268
-
-Response Generation: 3899
-
-Total True values:
-
-Template Generation: 1687
-
-Response Generation: 1460
-
-Total of Not JSON:
-
-Template Generation: 0
-
-Response Generation: 0
-
-Generation Time:
-
-Template Generation:
-
-![finetuned_without_output_template_generate_time_plot.png](https://prod-files-secure.s3.us-west-2.amazonaws.com/c261e6b6-cd2a-412a-8df3-d68b0a77792e/38d236fd-6854-4421-9df3-d3bb9789d739/finetuned_without_output_template_generate_time_plot.png)
-
-Regular Generation:
-
-![finetuned_without_output_generate_time_plot.png](https://prod-files-secure.s3.us-west-2.amazonaws.com/c261e6b6-cd2a-412a-8df3-d68b0a77792e/4ce2683c-c16c-425e-8d4a-e24a940c125b/finetuned_without_output_generate_time_plot.png)
-
-**LLama3-8B-Instruct Pre-trained Template Without Output:** 
-
-Total generated values: 
-
-Template Generation: 4372
-
-Response Generation: 3524
-
-Total True values:
-
-Template Generation: 924
-
-Response Generation: 723
-
-Total of Not JSON:
-
-Template Generation: 0
-
-Response Generation: 42 (after intense post-processing)
-
-Generation Time:
-
-Template Generation:
-
-![pretrained_without_output_template_generate_time_plot.png](https://prod-files-secure.s3.us-west-2.amazonaws.com/c261e6b6-cd2a-412a-8df3-d68b0a77792e/886e44fd-f3f8-4a68-9bae-b59b9ec2deb5/pretrained_without_output_template_generate_time_plot.png)
-
-Response Generation:
-
-![pretrained_without_output_generate_time_plot.png](https://prod-files-secure.s3.us-west-2.amazonaws.com/c261e6b6-cd2a-412a-8df3-d68b0a77792e/f04afa05-0581-4a5c-b750-d44623b1ddb5/pretrained_without_output_generate_time_plot.png)
-
-**LLama3-8B-Instruct Pre-trained Template With Output:** 
-
-Total generated values: 
-
-Template Generation: 4356
-
-Response Generation: 3527
-
-Total True values:
-
-Template Generation: 1016
-
-Response Generation: 729
-
-Total of Not JSON:
-
-Template Generation: 0
-
-Response Generation: 42 (after intense post-processing)
-
-Generation Time:
-
-Template Generation:
-
-![pretrained_with_output_template_generate_time_plot.png](https://prod-files-secure.s3.us-west-2.amazonaws.com/c261e6b6-cd2a-412a-8df3-d68b0a77792e/651edd9d-1991-4cdf-bdb7-66d30b0f0391/pretrained_with_output_template_generate_time_plot.png)
-
-Response Generation:
-
-![pretrained_with_output_generate_time_plot.png](https://prod-files-secure.s3.us-west-2.amazonaws.com/c261e6b6-cd2a-412a-8df3-d68b0a77792e/61d6640f-b080-4c28-9e8d-807fb10204b2/pretrained_with_output_generate_time_plot.png)
