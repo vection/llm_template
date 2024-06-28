@@ -4,7 +4,6 @@ from transformers import StoppingCriteriaList, PreTrainedModel, PreTrainedTokeni
 import torch
 import ast
 from .json_convertor import loads
-import yaml
 from .base_generator import BaseGenerator
 
 
@@ -116,77 +115,5 @@ class JsonGenerator(BaseGenerator):
                     finally:
                         if isinstance(final_response_str, str):
                             return loads(final_response_str)
-
-        return final_response_str
-
-
-class YamlGenerator(BaseGenerator):
-    """
-    YamlGenerator is a subclass of BaseGenerator designed to generate YAML structures using a pre-trained language model.
-    This class takes input text and produces YAML output, adhering to specified stopping criteria to ensure the output
-    is in a valid YAML format. It supports both string and list inputs, and can generate outputs based on a provided template.
-
-    Args:
-        model (PreTrainedModel): The pre-trained language model to be used for text generation.
-        tokenizer (PreTrainedTokenizer): The tokenizer corresponding to the pre-trained language model.
-        max_tokens (int, optional): The maximum number of tokens to be generated. Default is 512.
-        temperature (float, optional): The temperature for sampling during generation, which controls the randomness of
-                                       predictions by scaling the logits before applying softmax. Default is 0.1.
-
-    Attributes:
-        model (PreTrainedModel): The pre-trained language model.
-        tokenizer (PreTrainedTokenizer): The tokenizer corresponding to the pre-trained language model.
-        max_tokens_generation (int): Stores the maximum number of tokens for generation.
-        temperature (float): Stores the temperature value for sampling.
-        yaml_criteria (StoppingCriteriaList): Stopping criteria list for generating YAML structures.
-        device (torch.device): The device to run the model on ('cuda' if GPU is available, else 'cpu').
-    """
-
-    def __init__(self, model: PreTrainedModel, tokenizer: PreTrainedTokenizer):
-        super().__init__(model, tokenizer)
-        self.model = model
-        self.tokenizer = tokenizer
-        self.yaml_criteria = StoppingCriteriaList([YamlStoppingCriteria(self.tokenizer)])
-        self.device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
-
-    def generate(self, inputs: Union[str, list], template: dict, max_tokens: int = 512,
-                 temperature: int = 0.1) -> Union[str, dict]:
-        pre_templates = str(template).split("FILL")
-
-        if len(pre_templates) == 0:
-            raise Exception("Invalid template format")
-
-        if isinstance(inputs, list):
-            text = self.tokenizer.apply_chat_template(inputs, tokenize=False, add_generation_prompt=True)
-            inputs = self.tokenizer([text], return_tensors="pt").to(self.device)
-
-        templates_tokens = self.tokenizer(pre_templates)['input_ids']
-        templates_tokens = templates_tokens[:-1]
-
-        final_response = []
-        for ind, temp_tokens in enumerate(templates_tokens):
-            temp_tokens = torch.tensor(temp_tokens).to(self.device)
-            inputs = torch.cat([inputs, temp_tokens.unsqueeze(0)], dim=1)
-            generated_ids = self.model.generate(
-                inputs=inputs,
-                max_new_tokens=max_tokens,
-                temperature=temperature,
-                eos_token_id=self.tokenizer.eos_token_id,
-                pad_token_id=self.tokenizer.pad_token_id,
-                stopping_criteria=self.yaml_criteria,
-                use_cache=True,
-            )
-            generated_ids = [output_ids[len(input_ids):] for input_ids, output_ids in zip(inputs, generated_ids)]
-            if ind == len(templates_tokens) - 1:
-                final_response.extend([temp_tokens.to('cpu'), generated_ids[0].to('cpu')])
-            else:
-                final_response.extend([temp_tokens.to('cpu'), generated_ids[0][:-1].to('cpu')])
-
-            inputs = torch.cat([inputs, generated_ids[0][:-1].unsqueeze(0)], dim=1)
-
-        final_response_str = \
-            self.tokenizer.batch_decode([torch.cat(final_response, dim=0).int()], skip_special_tokens=True)[0]
-
-        final_response_str = yaml.safe_load(final_response_str)
 
         return final_response_str
