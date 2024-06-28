@@ -7,7 +7,7 @@ setup(
     author_email='avivzx@gmail.com',
     description='Package designed to simplify the concept of getting structured output from LLMs',
     install_requires=[
-            'transformers','torch'
+            'transformers==4.41.1','torch==2.2.1'
     ],
     long_description=open('README.md').read(),
     long_description_content_type='text/markdown',
