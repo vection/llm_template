@@ -1,9 +1,9 @@
-## Generation By Template
-Control your in-house LLM outputs by generating structured JSON outputs.
+## 📝 Generation By Template
+🎛️ Control your in-house LLM outputs by producing structured JSON outputs.
 
-llm_template allows you to generate bulletproof JSON or YAML outputs from any instruction model. It can also generate complex schemas, working faster and more accurately in most scenarios compared to regular generate functions.
+**llm_template** enables the generation of robust JSON outputs from any instruction model. It can also create intricate schemas, working faster and more accurately than standard generation functions in most scenarios. This is achieved by injecting schema tokens into the response, compelling the LLM to generate only the values.
 
-### Installation
+### 🛠️ Installation
 To install llm_template, use pip:
 
 ```
@@ -15,7 +15,7 @@ Generation example of simple JSON:
 Desired json output:
 ```
 {'sender' : {'email': '', 'full_name': '', 'phone': ''}, 
-'item': [{'item_description': '', 'quantity': '', 'measurments' : '', 'material' : ''}], 
+'item': [{'item_description': '', 'quantity': '', 'measurments' : '', 'material' : ''}, ...], 
 'notes': ''}
 ```
 
@@ -106,7 +106,7 @@ result = generator.generate(text, schema,temperature=0.1)
 
 ## Creating the Schema
 
-When creating a schema for your JSON or YAML generation, follow these steps:
+When creating a schema for your JSON generation, follow these steps:
 
 1. **Identify Keys and Structure:** Determine the keys (fields) and their structure that you want in your generated output.
 2. **Define Placeholder Values:** Use placeholder values like `"FILL"` for keys whose values will be filled during generation.
@@ -137,7 +137,8 @@ When creating a schema for your JSON or YAML generation, follow these steps:
 * Add speculative decoding support
 
 
-## Motivation
+# 📄 Technical Report
+## 💡 Motivation
 Many Language Models (LLMs) struggle to ensure output in valid JSON format, prompting various proposed solutions. While many of these solutions involve prompt engineering techniques, they often require explicit specification within the prompt of the expected JSON format, with no guarantee of successful generation.
 
 These techniques frequently yield inconsistent outputs, occasionally resulting in incorrect JSON formatting, difficulty in filtering, inclusion of undesired keys, and mismatched schema. Moreover, they endure lengthy generation periods due to the necessity of strictly adhering to a predefined format, often involving repetitive characters.
@@ -151,7 +152,7 @@ Another approach involves fine-tuning to achieve JSON output, which, while funct
 Addressing these challenges demands more sophisticated approaches to enhance resilience in production environments.
 Imagine if we could govern the generation process and instruct the LLM to exclusively produce the desired tokens.
 
-## The Solution
+## 🚀 The Solution
 
 The proposed methodology involves the creation of predefined JSON-based templates and the management of the generation process through the segmentation of templates into discrete entities (keys). Each key is associated with the generation of its corresponding value utilizing Language Model-based methods, adhering to appropriate stopping criteria. 
 
@@ -210,7 +211,8 @@ By exploring this approach, we aim to alleviate the requirement of explicitly sp
 
 To maximize results the correlation between the template format and output format need to be the same. For example, if stated in the prompt desired JSON output, the JSON template need to be the same. This will ensure the correct values will be filled in the correct keys.
 
-### Experiments
+### 🧪 Experiments
+Tested the solution on a private dataset containing emails with annotated information extraction entities. The first set includes 438 samples, while the fine tuned version tested on approximately 2400 samples.
 
 | Model                                         | Generation Time Avg (sec) | Accuracy | Method  | Total Generated | Total JSON parsing errors |
 |-----------------------------------------------|---------------------------|----------|---------|-----------------|---------------------------|
@@ -218,8 +220,8 @@ To maximize results the correlation between the template format and output forma
 | LLama-3-7B-instruct                           | 4.99                      | 29.17%   | Generate| 3527            | 42                        |
 | Qwen-2-1.5B-instruct                          | 3.25                      | 42.42%   | Template| 3833            | 0                         |
 | Qwen-2-1.5B-instruct                          | 2.5                       | 24.85%   | Generate| 3375            | 39                        |
-| LLama-3-7B-instruct (FineTuned on private dataset)| 10.07                     | 60.3%    | Template| 15898           | 0                         |
-| LLama-3-7B-instruct (FineTuned on private dataset)| 17.06                     | 52.55%   | Generate| 13691           | 0                         |
+| LLama-3-7B-instruct (FineTuned)| 10.07                     | 60.3%    | Template| 15898           | 0                         |
+| LLama-3-7B-instruct (FineTuned)| 17.06                     | 52.55%   | Generate| 13691           | 0                         |
 
 **Accuracy rate is calculated by fuzzy similarity score for each entity between each generated value compared to Ground Truth value if provided. Then for each entity calculated a score and then averaging on all entities.**
 
