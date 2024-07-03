@@ -9,7 +9,7 @@ setup(
     install_requires=[
             'transformers==4.41.1','torch==2.2.1'
     ],
-    long_description=open('README.md').read(),
+    long_description="""Control your in-house LLM outputs by producing structured JSON outputs. llm_template enables the generation of robust JSON outputs from any instruction model. It can also create intricate schemas, working faster and more accurately than standard generation functions in most scenarios. This is achieved by injecting schema tokens into the response, compelling the LLM to generate only the values.""",
     long_description_content_type='text/markdown',
     url='https://github.com/vection/llm_template',
     packages=find_packages(),
