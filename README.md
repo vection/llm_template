@@ -130,6 +130,7 @@ When creating a schema for your JSON generation, follow these steps:
 * For simple JSON responses, you don't need to specify the JSON output in the prompt unless you want to generate a list of dictionaries.
 * Crafting a well-defined prompt significantly impacts the quality of the generated output. Clearly specifying the output format within the prompt can lead to more accurate results.
 * For more advanced generation, you can incorporate logic rules to control specific values. This can involve filtering or sampling from a predefined list of tokens or analyzing logits score distances to identify other candidate tokens for possible answers..
+* The bigger the model the impact of using llm_template raising in terms of inference time.
 
 
 ## Future Features
