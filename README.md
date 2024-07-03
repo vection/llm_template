@@ -216,9 +216,9 @@ Tested the solution on a private dataset containing emails with annotated inform
 
 | Model                                         | Generation Time Avg (sec) | Accuracy | Method  | Total Generated | Total JSON parsing errors |
 |-----------------------------------------------|---------------------------|----------|---------|-----------------|---------------------------|
-| LLama-3-7B-instruct                           | 3.08                      | 51.18%   | Template| 4356            | 0                         |
+| LLama-3-7B-instruct                           | 3.08                      | 38.14%   | Template| 4356            | 0                         |
 | LLama-3-7B-instruct                           | 4.99                      | 29.17%   | Generate| 3527            | 42                        |
-| Qwen-2-1.5B-instruct                          | 3.25                      | 42.42%   | Template| 3833            | 0                         |
+| Qwen-2-1.5B-instruct                          | 3.25                      | 33.42%   | Template| 3833            | 0                         |
 | Qwen-2-1.5B-instruct                          | 2.5                       | 24.85%   | Generate| 3375            | 39                        |
 | LLama-3-7B-instruct (FineTuned)| 10.07                     | 60.3%    | Template| 15898           | 0                         |
 | LLama-3-7B-instruct (FineTuned)| 17.06                     | 52.55%   | Generate| 13691           | 0                         |
